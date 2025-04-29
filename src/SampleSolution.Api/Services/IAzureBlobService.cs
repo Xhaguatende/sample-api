@@ -26,6 +26,27 @@ public interface IAzureBlobService
     Task<(Stream Content, string ContentType)> DownloadAsync(string fileName);
 
     /// <summary>
+    /// Gets the count of items in the blob container
+    /// </summary>
+    /// <returns>The number of items in the container</returns>
+    Task<int> GetItemCountAsync();
+
+    /// <summary>
+    /// Checks if the container has more than the specified number of items
+    /// </summary>
+    /// <param name="limit">The maximum number of items</param>
+    /// <returns>True if the container has more than the specified number of items, false otherwise</returns>
+    Task<bool> HasMoreItemsThanAsync(int limit);
+
+    /// <summary>
+    /// Checks if adding specified number of items would exceed the storage limit
+    /// </summary>
+    /// <param name="limit">The maximum number of items allowed</param>
+    /// <param name="itemsToAdd">Number of items to be added</param>
+    /// <returns>Tuple containing: whether limit would be exceeded, and the current item count</returns>
+    Task<(bool WouldExceedLimit, int CurrentCount)> WouldExceedLimitAsync(int limit, int itemsToAdd);
+
+    /// <summary>
     /// Uploads a file to Azure Blob Storage
     /// </summary>
     /// <param name="fileStream">The file stream to upload</param>

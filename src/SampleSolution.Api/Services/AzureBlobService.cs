@@ -75,6 +75,32 @@ public class AzureBlobService : IAzureBlobService
     }
 
     /// <inheritdoc />
+    public async Task<int> GetItemCountAsync()
+    {
+        int count = 0;
+        await foreach (var _ in _containerClient.GetBlobsAsync())
+        {
+            count++;
+        }
+        return count;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> HasMoreItemsThanAsync(int limit)
+    {
+        int count = 0;
+        await foreach (var _ in _containerClient.GetBlobsAsync())
+        {
+            count++;
+            if (count > limit)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <inheritdoc />
     public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType)
     {
         var blobClient = _containerClient.GetBlobClient(fileName);
@@ -87,5 +113,20 @@ public class AzureBlobService : IAzureBlobService
         await blobClient.UploadAsync(fileStream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders });
 
         return blobClient.Uri.ToString();
+    }
+
+    /// <inheritdoc />
+    public async Task<(bool WouldExceedLimit, int CurrentCount)> WouldExceedLimitAsync(int limit, int itemsToAdd)
+    {
+        int count = 0;
+        await foreach (var _ in _containerClient.GetBlobsAsync())
+        {
+            count++;
+            if (count + itemsToAdd > limit)
+            {
+                return (true, count);
+            }
+        }
+        return (false, count);
     }
 }

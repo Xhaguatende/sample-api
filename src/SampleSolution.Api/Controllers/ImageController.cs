@@ -85,6 +85,25 @@ public class ImageController : ControllerBase
             return BadRequest("No image URLs provided");
         }
 
+        const int storageLimit = 5;
+        
+        var (wouldExceedLimit, currentCount) = await _blobService.WouldExceedLimitAsync(storageLimit, imageUrls.Count);
+
+        if (wouldExceedLimit)
+        {
+            if (currentCount >= storageLimit)
+            {
+                _logger.LogWarning("Storage limit reached. Container already has {Count} items.", currentCount);
+                return BadRequest($"Storage limit reached. Cannot upload more images. Current count: {currentCount}");
+            }
+            else
+            {
+                _logger.LogWarning("Operation would exceed storage limit. Current count: {Count}, Attempting to add: {AddCount}", 
+                    currentCount, imageUrls.Count);
+                return BadRequest($"Operation would exceed the storage limit of {storageLimit} items. Current count: {currentCount}, Attempting to add: {imageUrls.Count}");
+            }
+        }
+
         var results = new List<(string Url, string BlobUrl, string Error)>();
         var httpClient = CreateConfiguredHttpClient();
 
