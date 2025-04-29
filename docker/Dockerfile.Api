@@ -1,0 +1,37 @@
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+
+# Set working directory and expose ports
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+# Setting up user
+ARG USERNAME=appuser
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid "$USER_GID" "$USERNAME" && \
+    useradd --uid "$USER_UID" --gid "$USER_GID" -m "$USERNAME"
+
+# Install necessary packages and set permissions
+# 'setcap' allows the .NET executable to bind to well-known ports (below 1024)
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y libcap2-bin curl net-tools dnsutils && \
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    setcap 'cap_net_bind_service=+ep' /usr/share/dotnet/dotnet && \
+    chown -R "$USERNAME:$USERNAME" /app
+
+# Copy source files
+ARG SOURCE_FOLDER
+COPY ${SOURCE_FOLDER} .
+
+# Run as non-root user
+USER "$USERNAME"
+
+# Set the entrypoint
+ENTRYPOINT ["dotnet", "SampleSolution.Api.dll"]
+
+# Set environment variables
+ENV ASPNETCORE_HTTP_PORTS=80

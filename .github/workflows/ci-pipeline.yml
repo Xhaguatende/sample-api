@@ -1,0 +1,62 @@
+#####################################################################################################
+# CI Pipeline for Sample API.
+# It uses the following reusable workflow:
+#   - .github/workflows/dotnet-web-reusable.yml
+#####################################################################################################
+
+name: CI Pipeline
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+    paths-ignore:
+      - "**/README.md"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/README.md"
+  workflow_call:
+    inputs:
+      enable_quality_gates:
+        required: true
+        type: boolean
+        default: false
+      enable_release:
+        required: true
+        type: boolean
+        default: true
+  workflow_dispatch:
+    inputs:
+      enable_quality_gates:
+        description: "Enable quality gates (e.g., unit tests, SonarCloud, etc.)"
+        required: true
+        type: boolean
+        default: false
+      enable_release:
+        description: "Enable release (e.g., Docker image, GitHub release, etc.)"
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  call-build-workflow:
+    uses: Xhaguatende/reusable-workflows/.github/workflows/dotnet-web-reusable.yml@main
+    with:
+      enable_quality_gates: ${{ github.event.inputs.enable_quality_gates == 'true' || github.event.inputs.enable_quality_gates == true }}
+      enable_release: ${{ github.event.inputs.enable_release == 'true' || github.event.inputs.enable_release == true }}
+      dotnet_version: "9.x"
+      sonar_cloud_organization: "xhaguatende-01"
+      sonar_cloud_project_key: "Test-NA"
+      publish_project: "./SampleSolution.Api/SampleSolution.Api.csproj"
+      docker_file: "./docker/Dockerfile.Api"
+      docker_hub_repository: "sample-api"
+      docker_image_title: "Sample API"
+      docker_image_description: "Docker image for Sample API"
+      has_mongodb_migration: false
+    secrets: inherit
