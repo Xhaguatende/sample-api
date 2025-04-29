@@ -65,7 +65,7 @@ public class ImageController : ControllerBase
                 SuccessCount = successfulDownloads,
                 FailureCount = failedDownloads.Count,
                 TotalCount = imageUrls.Count,
-                SuccessfulUploads = successfulUploads.Select(s => new { s.Url }).Take(10),
+                SuccessfulUploads = successfulUploads.Select(s => new { s.Url, s.BlobUrl }).Take(10),
                 FailedUrls = failedDownloads.Select(f => new { f.Url, f.Error }).Take(10),
                 Message = $"Successfully processed {successfulDownloads} out of {imageUrls.Count} images"
             });
@@ -92,10 +92,8 @@ public class ImageController : ControllerBase
         {
             try
             {
-                // Create request with timeout
                 using var request = new HttpRequestMessage(HttpMethod.Get, imageUrl);
 
-                // Download the image
                 using var response = await httpClient.SendAsync(
                     request,
                     HttpCompletionOption.ResponseHeadersRead,
@@ -148,7 +146,7 @@ public class ImageController : ControllerBase
                 SuccessCount = successfulDownloads,
                 FailureCount = failedDownloads.Count,
                 TotalCount = imageUrls.Count,
-                SuccessfulUploads = successfulUploads.Select(s => new { s.Url }).Take(10),
+                SuccessfulUploads = successfulUploads.Select(s => new { s.Url, s.BlobUrl }).Take(10),
                 FailedUrls = failedDownloads.Select(f => new { f.Url, f.Error }).Take(10),
                 Message = $"Successfully processed {successfulDownloads} out of {imageUrls.Count} images"
             });
