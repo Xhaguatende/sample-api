@@ -9,7 +9,7 @@ namespace SampleSolution.Api.Services;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
-using SampleSolution.Api.Settings;
+using Settings;
 
 /// <summary>
 /// Implementation of Azure Blob Storage service
@@ -118,7 +118,8 @@ public class AzureBlobService : IAzureBlobService
     /// <inheritdoc />
     public async Task<(bool WouldExceedLimit, int CurrentCount)> WouldExceedLimitAsync(int limit, int itemsToAdd)
     {
-        int count = 0;
+        var count = 0;
+
         await foreach (var _ in _containerClient.GetBlobsAsync())
         {
             count++;
@@ -127,6 +128,7 @@ public class AzureBlobService : IAzureBlobService
                 return (true, count);
             }
         }
+
         return (false, count);
     }
 }
